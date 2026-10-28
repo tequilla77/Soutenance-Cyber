@@ -1,0 +1,5 @@
+.vagrant/
+.lab/
+ansible/secrets.yml
+*.retry
+*.log

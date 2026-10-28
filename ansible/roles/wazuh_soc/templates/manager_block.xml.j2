@@ -1,0 +1,20 @@
+<ossec_config>
+  <!-- Réponse active : blocage 10 min de l'IP source d'un brute-force SSH -->
+  <active-response>
+    <command>firewall-drop</command>
+    <location>local</location>
+    <rules_id>5712,5763</rules_id>
+    <timeout>600</timeout>
+  </active-response>
+{% if telegram_enabled | bool %}
+
+  <!-- Notification Telegram des alertes critiques -->
+  <integration>
+    <name>custom-telegram</name>
+    <hook_url>https://api.telegram.org/bot{{ telegram_bot_token }}/sendMessage</hook_url>
+    <api_key>{{ telegram_chat_id }}</api_key>
+    <level>{{ telegram_min_level }}</level>
+    <alert_format>json</alert_format>
+  </integration>
+{% endif %}
+</ossec_config>

@@ -1,0 +1,5 @@
+# Règles HardenWatch (sid 9000000+). Le préfixe "HARDENWATCH" est repris par la règle Wazuh 100100.
+alert tcp any any -> $HOME_NET any (msg:"HARDENWATCH Scan de ports TCP SYN"; flow:stateless; flags:S,12; threshold:type threshold, track by_src, count 30, seconds 10; classtype:attempted-recon; sid:9000001; rev:1;)
+alert tcp any any -> $HOME_NET 22 (msg:"HARDENWATCH Connexions SSH repetees (brute-force probable)"; flow:to_server; flags:S,12; threshold:type threshold, track by_src, count 10, seconds 60; classtype:attempted-admin; sid:9000002; rev:1;)
+alert http any any -> $HOME_NET any (msg:"HARDENWATCH Tentative d'injection SQL (UNION SELECT)"; flow:to_server,established; http.uri; content:"union"; nocase; content:"select"; nocase; distance:0; classtype:web-application-attack; sid:9000003; rev:1;)
+alert http any any -> $HOME_NET any (msg:"HARDENWATCH Outil d'attaque web detecte (User-Agent)"; flow:to_server,established; http.user_agent; pcre:"/(sqlmap|nikto|nmap|hydra)/i"; classtype:web-application-attack; sid:9000004; rev:1;)

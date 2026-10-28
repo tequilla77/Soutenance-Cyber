@@ -1,0 +1,12 @@
+- name: Bannières de connexion
+  ansible.builtin.copy:
+    dest: "{{ item }}"
+    mode: "0644"
+    content: |
+      ************************************************************
+      *  Système d'information privé - accès réservé au personnel autorisé.
+      *  Toutes les connexions sont journalisées et surveillées.
+      *  Tout accès non autorisé expose à des poursuites conformément
+      *  à la législation togolaise sur la cybersécurité.
+      ************************************************************
+  loop: [/etc/issue, /etc/issue.net]

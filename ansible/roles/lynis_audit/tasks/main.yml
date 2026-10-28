@@ -1,0 +1,37 @@
+- name: Installation de Lynis
+  ansible.builtin.apt:
+    name: lynis
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: "Audit de sécurité Lynis (phase : {{ phase }})"
+  ansible.builtin.command: lynis audit system --cronjob --quiet
+  changed_when: false
+
+- name: Lecture de l'indice de durcissement
+  ansible.builtin.command: grep -oP '^hardening_index=\K[0-9]+' /var/log/lynis-report.dat
+  register: lynis_index
+  changed_when: false
+
+- name: Rapport complet rapatrié sur le contrôleur
+  ansible.builtin.fetch:
+    src: /var/log/lynis-report.dat
+    dest: "{{ lynis_reports_dir }}/{{ phase }}/{{ inventory_hostname }}-lynis.dat"
+    flat: true
+
+- name: Historique des scores (reports/scores.csv)
+  ansible.builtin.lineinfile:
+    path: "{{ lynis_reports_dir }}/scores.csv"
+    regexp: "^{{ phase }};{{ inventory_hostname }};"
+    line: "{{ phase }};{{ inventory_hostname }};{{ lynis_index.stdout }};{{ ansible_date_time.iso8601 }}"
+    insertafter: EOF
+    create: true
+    mode: "0644"
+  delegate_to: localhost
+  become: false
+  throttle: 1
+
+- name: Score
+  ansible.builtin.debug:
+    msg: "{{ inventory_hostname }} - indice de durcissement Lynis ({{ phase }}) : {{ lynis_index.stdout }}/100"

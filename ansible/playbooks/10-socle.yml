@@ -1,0 +1,7 @@
+- name: Socle commun
+  hosts: all
+  roles: [common]
+
+- name: Installation de Docker
+  hosts: docker_hosts
+  roles: [docker]

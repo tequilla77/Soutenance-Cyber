@@ -1,0 +1,38 @@
+# Durcissement HardenWatch : chaque bloc référence la section CIS Ubuntu 22.04
+# et la mesure ISO/IEC 27001:2022 (Annexe A) correspondantes.
+
+- name: "Mises à jour de sécurité automatiques | CIS 1.9 | ISO A.8.8"
+  ansible.builtin.import_tasks: updates.yml
+  tags: [updates]
+
+- name: "Services et modules inutiles | CIS 1.1, 2.x | ISO A.8.9"
+  ansible.builtin.import_tasks: services.yml
+  tags: [services]
+
+- name: "Paramètres réseau et noyau | CIS 1.5, 3.3 | ISO A.8.20"
+  ansible.builtin.import_tasks: sysctl.yml
+  tags: [sysctl]
+
+- name: "Pare-feu hôte UFW | CIS 3.5 | ISO A.8.20"
+  ansible.builtin.import_tasks: firewall.yml
+  tags: [firewall]
+
+- name: "Serveur SSH | CIS 5.2 | ISO A.8.5"
+  ansible.builtin.import_tasks: ssh.yml
+  tags: [ssh]
+
+- name: "Comptes et mots de passe | CIS 5.4, 5.5 | ISO A.5.17, A.8.2"
+  ansible.builtin.import_tasks: accounts.yml
+  tags: [accounts]
+
+- name: "Journalisation et audit (auditd) | CIS 4.1 | ISO A.8.15"
+  ansible.builtin.import_tasks: auditd.yml
+  tags: [auditd]
+
+- name: "Permissions des fichiers sensibles | CIS 6.1 | ISO A.8.3"
+  ansible.builtin.import_tasks: permissions.yml
+  tags: [permissions]
+
+- name: "Bannière légale | CIS 1.7 | ISO A.5.10"
+  ansible.builtin.import_tasks: banner.yml
+  tags: [banner]

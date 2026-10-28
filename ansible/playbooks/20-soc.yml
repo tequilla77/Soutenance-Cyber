@@ -1,0 +1,3 @@
+- name: Déploiement du SOC Wazuh (Docker)
+  hosts: siem
+  roles: [wazuh_soc]

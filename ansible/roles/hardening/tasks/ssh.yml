@@ -1,0 +1,32 @@
+- name: Suppression de la configuration SSH permissive de départ
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d/00-baseline.conf
+    state: absent
+  notify: Redémarrer SSH
+
+# Préfixe 01- : sshd retient la première valeur lue, ce fichier passe avant ceux du système
+- name: Configuration SSH durcie
+  ansible.builtin.template:
+    src: sshd_hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/01-hardenwatch.conf
+    mode: "0600"
+    validate: /usr/sbin/sshd -t -f %s
+  notify: Redémarrer SSH
+
+- name: Protection anti brute-force (fail2ban)
+  ansible.builtin.apt:
+    name: fail2ban
+    state: present
+
+- name: Prison SSH fail2ban
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.d/hardenwatch.local
+    mode: "0644"
+    content: |
+      [sshd]
+      enabled  = true
+      maxretry = 5
+      findtime = 10m
+      bantime  = 10m
+      ignoreip = 127.0.0.1/8 {{ wazuh_manager_ip }}
+  notify: Redémarrer fail2ban

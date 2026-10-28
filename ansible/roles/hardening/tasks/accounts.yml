@@ -1,0 +1,46 @@
+- name: Qualité des mots de passe (pam_pwquality)
+  ansible.builtin.apt:
+    name: libpam-pwquality
+    state: present
+
+- name: Règles de complexité (12 caractères, 3 classes)
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: "^#?\\s*{{ item.key }}\\s*="
+    line: "{{ item.key }} = {{ item.value }}"
+  loop: "{{ {'minlen': 12, 'minclass': 3, 'maxrepeat': 3, 'dictcheck': 1} | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Règles de complexité appliquées aussi à root
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: "^#?\\s*enforce_for_root"
+    line: enforce_for_root
+
+- name: Durée de vie des mots de passe
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: "^{{ item.key }}\\s"
+    line: "{{ item.key }}\t{{ item.value }}"
+  loop: "{{ {'PASS_MAX_DAYS': 90, 'PASS_MIN_DAYS': 1, 'PASS_WARN_AGE': 7, 'UMASK': '027'} | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Verrouillage du compte root (accès via sudo uniquement)
+  ansible.builtin.user:
+    name: root
+    password_lock: true
+
+- name: Liste des comptes existants
+  ansible.builtin.getent:
+    database: passwd
+
+- name: Verrouillage des comptes à risque identifiés lors de l'audit
+  ansible.builtin.user:
+    name: "{{ item }}"
+    password_lock: true
+    shell: /usr/sbin/nologin
+    groups: []
+  loop: "{{ hardening_locked_users }}"
+  when: item in ansible_facts.getent_passwd

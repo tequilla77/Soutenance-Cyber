@@ -1,0 +1,9 @@
+# Scripts exécutés dans les VM Linux : toujours en fins de ligne LF (même si cloné sous Windows)
+* text=auto
+*.sh text eol=lf
+*.yml text eol=lf
+*.j2 text eol=lf
+*.cfg text eol=lf
+Vagrantfile text eol=lf
+Makefile text eol=lf
+ansible/roles/wazuh_soc/files/custom-telegram text eol=lf

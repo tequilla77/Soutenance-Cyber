@@ -1,0 +1,3 @@
+wazuh_docker_dir: /opt/wazuh-docker
+wazuh_single_node_dir: "{{ wazuh_docker_dir }}/single-node"
+telegram_enabled: "{{ telegram_bot_token | length > 0 and telegram_chat_id | length > 0 }}"

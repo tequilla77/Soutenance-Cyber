@@ -1,0 +1,3 @@
+- name: Services métier de la PME
+  hosts: servers
+  roles: [services_metier]

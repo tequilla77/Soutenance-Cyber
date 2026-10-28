@@ -1,0 +1,33 @@
+- name: Dossier des clés APT
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Clé du dépôt Docker
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Dépôt Docker
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    filename: docker
+
+- name: Installation de Docker Engine et Compose
+  ansible.builtin.apt:
+    name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
+    state: present
+
+- name: Service Docker démarré
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: L'utilisateur vagrant peut utiliser Docker
+  ansible.builtin.user:
+    name: vagrant
+    groups: docker
+    append: true

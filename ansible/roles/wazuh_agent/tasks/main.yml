@@ -1,0 +1,62 @@
+- name: Dossier des clés APT
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Clé du dépôt Wazuh
+  ansible.builtin.get_url:
+    url: https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    dest: /etc/apt/keyrings/wazuh.asc
+    mode: "0644"
+
+- name: Dépôt Wazuh
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/wazuh.asc] https://packages.wazuh.com/4.x/apt/ stable main"
+    filename: wazuh
+
+- name: Installation de l'agent (version alignée sur le manager)
+  ansible.builtin.apt:
+    name: "wazuh-agent={{ wazuh_version }}-1"
+    state: present
+  environment:
+    WAZUH_MANAGER: "{{ wazuh_manager_ip }}"
+    WAZUH_AGENT_NAME: "{{ inventory_hostname }}"
+
+- name: Version de l'agent figée (évite une mise à jour plus récente que le manager)
+  ansible.builtin.dpkg_selections:
+    name: wazuh-agent
+    selection: hold
+
+- name: Adresse du manager
+  ansible.builtin.replace:
+    path: /var/ossec/etc/ossec.conf
+    regexp: "<address>.*</address>"
+    replace: "<address>{{ wazuh_manager_ip }}</address>"
+  notify: Redémarrer l'agent Wazuh
+
+- name: Sources supplémentaires (Suricata, auditd) et FIM temps réel
+  ansible.builtin.blockinfile:
+    path: /var/ossec/etc/ossec.conf
+    marker: "<!-- {mark} HARDENWATCH -->"
+    block: |
+      <ossec_config>
+        <localfile>
+          <log_format>json</log_format>
+          <location>/var/log/suricata/eve.json</location>
+        </localfile>
+        <localfile>
+          <log_format>audit</log_format>
+          <location>/var/log/audit/audit.log</location>
+        </localfile>
+        <syscheck>
+          <directories realtime="yes" check_all="yes">/etc</directories>
+        </syscheck>
+      </ossec_config>
+  notify: Redémarrer l'agent Wazuh
+
+- name: Agent démarré
+  ansible.builtin.service:
+    name: wazuh-agent
+    state: started
+    enabled: true

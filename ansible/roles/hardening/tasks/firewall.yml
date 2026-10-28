@@ -1,0 +1,22 @@
+- name: Paquet UFW
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+- name: Ports autorisés
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    from_ip: "{{ item.from | default('any') }}"
+  loop: "{{ hardening_ufw_rules }}"
+
+- name: Journalisation du pare-feu
+  community.general.ufw:
+    logging: "low"
+
+- name: Politique par défaut "tout refuser en entrée" et activation
+  community.general.ufw:
+    state: enabled
+    direction: incoming
+    policy: deny

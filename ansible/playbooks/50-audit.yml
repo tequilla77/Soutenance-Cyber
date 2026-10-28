@@ -1,0 +1,6 @@
+# Usage : ansible-playbook playbooks/50-audit.yml -e phase=avant|apres
+- name: Audit de conformité Lynis
+  hosts: all
+  vars:
+    phase: avant
+  roles: [lynis_audit]

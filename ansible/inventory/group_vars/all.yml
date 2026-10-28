@@ -1,0 +1,26 @@
+# ---------- Lab ----------
+lab_name: HardenWatch
+lab_network: 192.168.56.0/24
+lab_timezone: Africa/Lome
+
+# Interface réseau du lab (celle qui porte ansible_host), détectée automatiquement
+lab_iface: >-
+  {{ ansible_interfaces | map('replace', '-', '_') | map('extract', ansible_facts)
+     | selectattr('ipv4', 'defined') | selectattr('ipv4.address', 'equalto', ansible_host)
+     | map(attribute='device') | first }}
+
+# ---------- Wazuh ----------
+wazuh_version: "4.9.2"
+wazuh_manager_ip: 192.168.56.10
+
+# ---------- Alertes Telegram (renseigner dans ansible/secrets.yml) ----------
+telegram_bot_token: ""
+telegram_chat_id: ""
+telegram_min_level: 10
+
+# ---------- Durcissement ----------
+hardening_ssh_password_auth: false
+hardening_ip_forward: false
+hardening_locked_users: [stagiaire]
+hardening_ufw_rules:
+  - { port: "22", proto: tcp }

@@ -1,0 +1,63 @@
+- name: Installation de Suricata
+  ansible.builtin.apt:
+    name: [suricata, jq]
+    state: present
+
+- name: Interface surveillée (suricata.yaml)
+  ansible.builtin.replace:
+    path: /etc/suricata/suricata.yaml
+    regexp: '^(\s*- interface:)\s*eth0\s*$'
+    replace: '\1 {{ lab_iface }}'
+  notify: Redémarrer Suricata
+
+- name: Interface surveillée (service)
+  ansible.builtin.lineinfile:
+    path: /etc/default/suricata
+    regexp: '^IFACE='
+    line: 'IFACE={{ lab_iface }}'
+    create: true
+    mode: "0644"
+  notify: Redémarrer Suricata
+
+- name: Réseau protégé (HOME_NET)
+  ansible.builtin.replace:
+    path: /etc/suricata/suricata.yaml
+    regexp: '^(\s*)HOME_NET:.*$'
+    replace: '\1HOME_NET: "[{{ lab_network }}]"'
+  notify: Redémarrer Suricata
+
+- name: Emplacement des règles (géré par suricata-update)
+  ansible.builtin.replace:
+    path: /etc/suricata/suricata.yaml
+    regexp: '^default-rule-path:.*$'
+    replace: 'default-rule-path: /var/lib/suricata/rules'
+  notify: Redémarrer Suricata
+
+- name: Fichiers de règles chargés (Emerging Threats + règles HardenWatch)
+  ansible.builtin.replace:
+    path: /etc/suricata/suricata.yaml
+    regexp: '^rule-files:\n(?:[ \t]*(?:-|#).*\n)*'
+    replace: "rule-files:\n  - suricata.rules\n  - local.rules\n"
+  notify: Redémarrer Suricata
+
+- name: Téléchargement des règles Emerging Threats Open
+  ansible.builtin.command: suricata-update
+  changed_when: false
+  notify: Redémarrer Suricata
+
+- name: Règles locales HardenWatch
+  ansible.builtin.copy:
+    src: local.rules
+    dest: /var/lib/suricata/rules/local.rules
+    mode: "0644"
+  notify: Redémarrer Suricata
+
+- name: Validation de la configuration
+  ansible.builtin.command: suricata -T -c /etc/suricata/suricata.yaml
+  changed_when: false
+
+- name: Suricata démarré
+  ansible.builtin.service:
+    name: suricata
+    state: started
+    enabled: true

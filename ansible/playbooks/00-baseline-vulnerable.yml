@@ -1,0 +1,4 @@
+# Simule le SI d'une PME "type" non sécurisé (point de départ de la démo)
+- name: Configuration vulnérable de départ
+  hosts: servers
+  roles: [baseline_vulnerable]

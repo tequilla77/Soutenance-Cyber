@@ -1,0 +1,12 @@
+- name: Redémarrer SSH
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+
+- name: Redémarrer fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: restarted
+
+- name: Recharger auditd
+  ansible.builtin.command: augenrules --load

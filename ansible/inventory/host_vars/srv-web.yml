@@ -1,0 +1,4 @@
+hardening_ip_forward: true
+hardening_ufw_rules:
+  - { port: "22", proto: tcp }
+  - { port: "80", proto: tcp }

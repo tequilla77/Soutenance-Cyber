@@ -1,0 +1,28 @@
+<!-- Règles personnalisées HardenWatch (identifiants 100100-100199) -->
+<group name="hardenwatch,suricata,">
+
+  <!-- Signatures Suricata propres au projet : élevées au niveau 10 (alerte Telegram) -->
+  <rule id="100100" level="10">
+    <if_sid>86601</if_sid>
+    <field name="alert.signature">^HARDENWATCH</field>
+    <description>HardenWatch IDS : $(alert.signature) depuis $(src_ip)</description>
+    <mitre>
+      <id>T1046</id>
+    </mitre>
+  </rule>
+
+</group>
+
+<group name="hardenwatch,syscheck,">
+
+  <!-- Modification d'un fichier d'identité (création de compte pirate, etc.) -->
+  <rule id="100110" level="10">
+    <if_group>syscheck</if_group>
+    <match>/etc/passwd|/etc/shadow|/etc/sudoers</match>
+    <description>HardenWatch FIM : fichier d'identité ou sudoers modifié</description>
+    <mitre>
+      <id>T1136</id>
+    </mitre>
+  </rule>
+
+</group>

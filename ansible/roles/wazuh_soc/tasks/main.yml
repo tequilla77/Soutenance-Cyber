@@ -1,0 +1,67 @@
+- name: Paramètre noyau requis par l'indexeur Wazuh (OpenSearch)
+  ansible.posix.sysctl:
+    name: vm.max_map_count
+    value: "262144"
+    sysctl_file: /etc/sysctl.d/90-wazuh.conf
+
+- name: Récupération du déploiement Docker officiel de Wazuh
+  ansible.builtin.git:
+    repo: https://github.com/wazuh/wazuh-docker.git
+    dest: "{{ wazuh_docker_dir }}"
+    version: "v{{ wazuh_version }}"
+    depth: 1
+    force: false
+    update: false
+
+- name: Règles de détection HardenWatch
+  ansible.builtin.copy:
+    src: local_rules.xml
+    dest: "{{ wazuh_single_node_dir }}/local_rules.xml"
+    mode: "0644"
+  notify: Redémarrer le manager Wazuh
+
+- name: Intégration Telegram
+  ansible.builtin.copy:
+    src: custom-telegram
+    dest: "{{ wazuh_single_node_dir }}/custom-telegram"
+    mode: "0755"
+  notify: Redémarrer le manager Wazuh
+
+- name: Montage des fichiers HardenWatch dans le conteneur manager
+  ansible.builtin.template:
+    src: docker-compose.override.yml.j2
+    dest: "{{ wazuh_single_node_dir }}/docker-compose.override.yml"
+    mode: "0644"
+  notify: Recréer la pile Wazuh
+
+- name: Réponse active et alertes dans la configuration du manager
+  ansible.builtin.blockinfile:
+    path: "{{ wazuh_single_node_dir }}/config/wazuh_cluster/wazuh_manager.conf"
+    marker: "<!-- {mark} HARDENWATCH -->"
+    block: "{{ lookup('template', 'manager_block.xml.j2') }}"
+  notify: Redémarrer le manager Wazuh
+
+- name: Génération des certificats TLS de la pile
+  ansible.builtin.command:
+    cmd: docker compose -f generate-indexer-certs.yml run --rm generator
+    chdir: "{{ wazuh_single_node_dir }}"
+    creates: "{{ wazuh_single_node_dir }}/config/wazuh_indexer_ssl_certs/root-ca.pem"
+
+- name: Démarrage de la pile Wazuh (indexer, manager, dashboard)
+  ansible.builtin.command:
+    cmd: docker compose up -d
+    chdir: "{{ wazuh_single_node_dir }}"
+  register: compose_up
+  changed_when: "'Started' in compose_up.stderr or 'Created' in compose_up.stderr"
+
+- name: Attente du tableau de bord
+  ansible.builtin.wait_for:
+    port: 443
+    timeout: 600
+
+- name: Informations d'accès
+  ansible.builtin.debug:
+    msg:
+      - "Tableau de bord : https://{{ ansible_host }} (ou https://localhost:8443 depuis le PC hôte)"
+      - "Identifiants par défaut du lab : admin / SecretPassword (à changer hors lab)"
+      - "Alertes Telegram : {{ 'activées' if telegram_enabled | bool else 'désactivées (ansible/secrets.yml absent)' }}"

@@ -1,0 +1,6 @@
+# Géré par Ansible (HardenWatch) : ajouts au docker-compose officiel de Wazuh
+services:
+  wazuh.manager:
+    volumes:
+      - ./local_rules.xml:/var/ossec/etc/rules/local_rules.xml:ro
+      - ./custom-telegram:/var/ossec/integrations/custom-telegram:ro

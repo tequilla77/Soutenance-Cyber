@@ -1,0 +1,23 @@
+# ATTENTION : rend volontairement les serveurs vulnérables. Uniquement dans le lab isolé !
+- name: Compte "stagiaire" au mot de passe faible et droits sudo
+  ansible.builtin.user:
+    name: stagiaire
+    password: "{{ 'azerty123' | password_hash('sha512', 'hardenwatch') }}"
+    groups: sudo
+    append: true
+    shell: /bin/bash
+
+- name: SSH permissif (mot de passe et root autorisés)
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/00-baseline.conf
+    mode: "0644"
+    content: |
+      PasswordAuthentication yes
+      PermitRootLogin yes
+      MaxAuthTries 10
+  notify: Redémarrer SSH
+
+- name: Fichier de mots de passe lisible par tous (mauvaise pratique)
+  ansible.builtin.file:
+    path: /etc/shadow
+    mode: "0644"

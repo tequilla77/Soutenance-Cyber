@@ -1,0 +1,35 @@
+# srv-web : application web (volontairement vulnérable, DVWA) conteneurisée
+- name: Application web de la PME (DVWA sous Docker)
+  when: inventory_hostname in groups['docker_hosts']
+  block:
+    - name: Dossier de l'application
+      ansible.builtin.file:
+        path: /opt/webapp
+        state: directory
+        mode: "0755"
+
+    - name: Fichier docker-compose de l'application
+      ansible.builtin.copy:
+        dest: /opt/webapp/docker-compose.yml
+        mode: "0644"
+        content: |
+          services:
+            dvwa:
+              image: vulnerables/web-dvwa
+              container_name: webapp
+              ports: ["80:80"]
+              restart: unless-stopped
+
+    - name: Démarrage de l'application
+      ansible.builtin.command:
+        cmd: docker compose up -d
+        chdir: /opt/webapp
+      register: webapp_up
+      changed_when: "'Started' in webapp_up.stderr or 'Created' in webapp_up.stderr"
+
+# srv-db : base de données de la PME
+- name: Serveur de base de données MariaDB
+  when: inventory_hostname == 'srv-db'
+  ansible.builtin.apt:
+    name: mariadb-server
+    state: present

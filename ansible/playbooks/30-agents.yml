@@ -1,0 +1,3 @@
+- name: Agents de supervision (Wazuh + Suricata)
+  hosts: servers
+  roles: [suricata, wazuh_agent]

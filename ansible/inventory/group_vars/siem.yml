@@ -1,0 +1,8 @@
+# Docker a besoin du routage IP
+hardening_ip_forward: true
+hardening_ufw_rules:
+  - { port: "22", proto: tcp }
+  - { port: "443", proto: tcp }     # tableau de bord Wazuh
+  - { port: "1514", proto: tcp }    # remontée des agents
+  - { port: "1515", proto: tcp }    # enrôlement des agents
+  - { port: "55000", proto: tcp }   # API Wazuh

@@ -1,0 +1,27 @@
+- name: Suppression des clients/serveurs non sécurisés
+  ansible.builtin.apt:
+    name: [telnet, rsh-client, talk, nis, xinetd, ftp]
+    state: absent
+    purge: true
+
+- name: Désactivation des systèmes de fichiers et protocoles inutiles
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/hardenwatch.conf
+    mode: "0644"
+    content: |
+      install cramfs /bin/true
+      install freevxfs /bin/true
+      install jffs2 /bin/true
+      install hfs /bin/true
+      install hfsplus /bin/true
+      install udf /bin/true
+      install dccp /bin/true
+      install sctp /bin/true
+      install rds /bin/true
+      install tipc /bin/true
+
+- name: Pas de core dumps (fuite de données mémoire)
+  ansible.builtin.copy:
+    dest: /etc/security/limits.d/hardenwatch.conf
+    mode: "0644"
+    content: "* hard core 0\n"

@@ -1,0 +1,9 @@
+- name: Recréer la pile Wazuh
+  ansible.builtin.command:
+    cmd: docker compose up -d --force-recreate wazuh.manager
+    chdir: "{{ wazuh_single_node_dir }}"
+
+- name: Redémarrer le manager Wazuh
+  ansible.builtin.command:
+    cmd: docker compose restart wazuh.manager
+    chdir: "{{ wazuh_single_node_dir }}"

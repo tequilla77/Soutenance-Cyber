@@ -1,0 +1,6 @@
+# Déploiement complet du lab (hors durcissement, lancé séparément pour la démo avant/après)
+- import_playbook: 00-baseline-vulnerable.yml
+- import_playbook: 10-socle.yml
+- import_playbook: 20-soc.yml
+- import_playbook: 30-agents.yml
+- import_playbook: 40-services.yml

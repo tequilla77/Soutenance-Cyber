@@ -1,0 +1,31 @@
+- name: Paquets auditd
+  ansible.builtin.apt:
+    name: [auditd, audispd-plugins]
+    state: present
+
+- name: Règles d'audit HardenWatch
+  ansible.builtin.copy:
+    dest: /etc/audit/rules.d/hardenwatch.rules
+    mode: "0640"
+    content: |
+      # Comptes et privilèges
+      -w /etc/passwd -p wa -k identity
+      -w /etc/group -p wa -k identity
+      -w /etc/shadow -p wa -k identity
+      -w /etc/gshadow -p wa -k identity
+      -w /etc/sudoers -p wa -k scope
+      -w /etc/sudoers.d/ -p wa -k scope
+      # Configuration SSH
+      -w /etc/ssh/sshd_config -p wa -k sshd
+      -w /etc/ssh/sshd_config.d/ -p wa -k sshd
+      # Commandes lancées en root par un utilisateur humain
+      -a always,exit -F arch=b64 -S execve -F euid=0 -F auid>=1000 -F auid!=unset -k root_cmd
+      # Changement de l'heure système
+      -a always,exit -F arch=b64 -S adjtimex,settimeofday,clock_settime -k time_change
+  notify: Recharger auditd
+
+- name: Service auditd
+  ansible.builtin.service:
+    name: auditd
+    state: started
+    enabled: true
