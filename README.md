@@ -47,7 +47,7 @@ Détails : [docs/architecture.md](docs/architecture.md)
 
 ## Démarrage rapide
 
-Prérequis : PC 64 bits, **16 Go de RAM**, VirtualBox 7 et Vagrant installés.
+Prérequis : PC 64 bits, **16 Go de RAM**, VirtualBox 7 et Vagrant installés ([guide complet](docs/installation.md)).
 
 Sur le PC :
 
@@ -102,6 +102,8 @@ Tableau de bord Wazuh : **https://localhost:8443** (lab : `admin` / `SecretPassw
 ## Documentation
 
 - [Architecture technique](docs/architecture.md)
+- [Installation pas à pas](docs/installation.md)
+- [Plan du mémoire](docs/plan-memoire.md)
 
 ## ⚠️ Avertissement
 
